@@ -3,6 +3,8 @@
 #include "lista_enc.h"
 #include "lista_gen.h"
 #include "lista_interface.h"
+#include "lista_cabeca.h"
+#include "lista_ord.h"
 #include "lista_seq.h"
 
 static bool contar_item(ITEM *item, void *contexto){
@@ -16,12 +18,15 @@ int main(void){
     const LISTA_INTERFACE *implementacoes[] = {
         &lista_enc_interface,
         &lista_seq_interface,
-        &lista_gen_interface
+        &lista_gen_interface,
+        &lista_cabeca_interface,
+        &lista_ord_interface
     };
     void *listas[sizeof(implementacoes) / sizeof(implementacoes[0])];
     ITEM *item = item_criar();
     assert(item != NULL);
     item_set_chave(item, 91);
+    assert(item_set_campo(item, "similarity", "0.51"));
 
     for(size_t i = 0; i < sizeof(listas) / sizeof(listas[0]); i++){
         listas[i] = implementacoes[i]->criar(false);

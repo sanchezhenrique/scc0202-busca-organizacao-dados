@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "fila.h"
+#include "../includes/fila.h"
 
 /* No encadeado da fila; prox liga os itens em ordem de chegada. */
 typedef struct _no{

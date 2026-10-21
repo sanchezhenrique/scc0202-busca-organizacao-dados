@@ -19,11 +19,16 @@ $CC $CFLAGS "$ROOT/src/tests/test_lista_gen_ownership.c" \
   "$ROOT/src/tads/lista_gen.c" "$ITEM" -lm -o "$BUILD_DIR/test_lista_gen_ownership"
 $CC $CFLAGS "$ROOT/src/tests/test_list_interfaces.c" \
   "$ROOT/src/tads/lista_enc.c" "$ROOT/src/tads/lista_seq.c" \
-  "$ROOT/src/tads/lista_gen.c" "$ROOT/src/tads/lista_interface.c" \
+  "$ROOT/src/tads/lista_gen.c" "$ROOT/src/tads/lista_cabeca.c" \
+  "$ROOT/src/tads/lista_ord.c" "$ROOT/src/tads/lista_interface.c" \
   "$ITEM" -lm -o "$BUILD_DIR/test_list_interfaces"
+$CC $CFLAGS "$ROOT/src/tests/test_lista_cabeca_ord.c" \
+  "$ROOT/src/tads/lista_cabeca.c" "$ROOT/src/tads/lista_ord.c" \
+  "$ITEM" -lm -o "$BUILD_DIR/test_lista_cabeca_ord"
 
 "$BUILD_DIR/test_item_ownership"
 "$BUILD_DIR/test_lista_seq_ownership"
 "$BUILD_DIR/test_lista_gen_ownership"
 "$BUILD_DIR/test_list_interfaces"
-printf '%s\n' "Testes de propriedade dos ITEMs passaram."
+"$BUILD_DIR/test_lista_cabeca_ord"
+printf '%s\n' "Testes dos TADs passaram."

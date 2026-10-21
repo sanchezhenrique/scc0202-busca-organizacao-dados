@@ -1,7 +1,6 @@
 #include "../includes/item.h"
 
 #include <ctype.h>
-#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -223,15 +222,15 @@ bool item_get_numero(const ITEM *item, const char *nome, double *valor) {
     if (texto == NULL || texto[0] == '\0')
         return false;
 
-    /* strtod aceita notacao cientifica, usada por varios campos Sentry. */
-    errno = 0;
     char *fim = NULL;
     double convertido = strtod(texto, &fim);
-    if (fim == texto || errno == ERANGE || !isfinite(convertido))
+
+    if (fim == texto || !isfinite(convertido))
         return false;
 
     while (*fim != '\0' && isspace((unsigned char)*fim))
         fim++;
+
     if (*fim != '\0')
         return false;
 
