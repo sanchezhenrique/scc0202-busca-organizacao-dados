@@ -1,0 +1,5 @@
+# Acidentes com ao menos uma morte, organizados por estado e tipo de acidente.
+FILTER|mortos|>=|1
+ORDER|mortos|DESC
+GROUP|uf|tipo_acidente
+CROSS|uf|br

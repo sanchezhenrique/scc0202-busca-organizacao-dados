@@ -1,0 +1,9 @@
+# Acidentes com feridos em MG, proximos do km 150 e com cerca de tres pessoas.
+FILTER|uf|==|MG
+FILTER|feridos|>=|1
+SIM|km|150.0|50.0|1.0
+SIM|pessoas|3.0|3.0|1.0
+ACCEPT|0.40
+ORDER|similarity|DESC
+GROUP|br|classificacao_acidente
+CROSS|br|km
