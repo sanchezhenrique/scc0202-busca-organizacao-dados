@@ -8,7 +8,7 @@ static int falhas = 0;
 
 static void conferir(bool condicao, const char *mensagem) {
   if (!condicao) {
-    fprintf(stderr, "FALHA CSV: %s\n", mensagem);
+    printf("FALHA CSV: %s\n", mensagem);
     falhas++;
   }
 }
@@ -143,6 +143,6 @@ int main(void) {
   if (falhas != 0) {
     return EXIT_FAILURE;
   }
-  puts("CSV e ITEM: sintaxe, conversoes, linha original e propriedade verificados.");
+  printf("CSV e ITEM: sintaxe, conversoes, linha original e propriedade verificados.\n");
   return EXIT_SUCCESS;
 }

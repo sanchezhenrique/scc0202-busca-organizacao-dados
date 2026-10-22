@@ -4,7 +4,7 @@ O mesmo executável atende às duas partes, com TADs ocultos, funções diretas,
 
 | Parte | `--reader` | Arquivo fornecido |
 | --- | --- | --- |
-| Asteroides | `nasa` | `asteroid_dataset_20251019.csv` |
+| Asteroides | `nasa` | `asteroids.csv` |
 | Acidentes | `datatran` | `datatran2026.csv` |
 
 ## Compilar e executar
@@ -13,7 +13,7 @@ O ambiente utilizado é Linux, com compilador C99 e `make`. A medição usa `clo
 
 ```sh
 make
-./trabalho --reader nasa --input asteroid_dataset_20251019.csv \
+./trabalho --reader nasa --input asteroids.csv \
   --base lista_seq --result lista_ord --query consultas/nasa.txt \
   --output resultado_nasa.csv --top-k 100 --limit 0
 ```
@@ -57,7 +57,17 @@ O item guarda a linha original para exportar, os campos separados para consultar
 
 A carga cria e insere cada item na base. O resultado guarda referências aos mesmos itens, sem copiar as linhas. No encerramento, o resultado libera sua estrutura e a base destrói os itens. Se a inserção falhar, a carga destrói o item que não foi inserido.
 
+## Leitura e mensagens
+
+As mensagens na tela utilizam somente `printf`. Em caso de falha, a etapa responsável imprime `ERRO=...`; argumentos inválidos também exibem `USO=...`. As oito métricas continuam sendo impressas, com `STATUS=ERROR` nas falhas e retorno diferente de zero. Não há buffer intermediário de mensagens.
+
+A leitura dos datasets e das consultas utiliza `fgets`, dentro de `arquivo_ler_linha` em `leitores/csv.c`. `fopen` abre o arquivo, `ferror` verifica falhas de leitura e `fclose` o fecha. Não são usados `scanf`, `fscanf` ou `sscanf`. A separação dos campos é feita por laços; `strtod` apenas converte em `double` um texto já lido. Os argumentos de execução chegam por `argc` e `argv`.
+
+`fputs` é utilizado para gravar os textos nos arquivos CSV e nos arquivos temporários de teste. Não é usado para mensagens na tela. Os testes de leitura também utilizam `tmpfile` para criar um arquivo temporário e `rewind` para voltar ao início dele.
+
 ## Verificação e documentação
+
+Para uma conferência manual com resultado conhecido, use a [consulta independente NASA](testes/esperados/nasa_verificacao.md). Ela seleciona 287 itens dos primeiros 10.000 registros e exporta os 100 primeiros por similaridade. O guia contém o comando, as contagens, os primeiros itens e o CSV esperado para comparação.
 
 ```sh
 make test

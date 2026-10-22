@@ -2,6 +2,7 @@
 #include "csv.h"
 #include "datatran.h"
 
+#include <stdio.h>
 #include <string.h>
 
 /* O leitor possui o arquivo e sua tabela, mas nao os itens ja entregues. */
@@ -11,12 +12,6 @@ struct leitor {
   size_t lidos;
   bool datatran;
 };
-
-static void leitor_erro(char *erro, size_t capacidade, const char *mensagem) {
-  if (erro != NULL && capacidade > 0) {
-    snprintf(erro, capacidade, "%s", mensagem);
-  }
-}
 
 static TABELA *ler_cabecalho(FILE *arquivo, bool datatran) {
   char *linha = NULL;
@@ -55,35 +50,32 @@ static TABELA *ler_cabecalho(FILE *arquivo, bool datatran) {
 }
 
 /* A selecao do dominio fica aqui para que os TADs nao dependam de asteroides. */
-LEITOR *leitor_abrir(const char *nome, const char *caminho,
-                     char *erro, size_t capacidade) {
+LEITOR *leitor_abrir(const char *nome, const char *caminho) {
   LEITOR *leitor;
 
   if (nome == NULL || caminho == NULL) {
-    leitor_erro(erro, capacidade, "Leitor e caminho de entrada sao obrigatorios.");
+    printf("ERRO=Leitor e caminho de entrada sao obrigatorios.\n");
     return NULL;
   }
   if (strcmp(nome, "nasa") != 0 && strcmp(nome, "datatran") != 0) {
-    leitor_erro(erro, capacidade,
-                "Leitor desconhecido. Use nasa ou datatran.");
+    printf("ERRO=Leitor desconhecido. Use nasa ou datatran.\n");
     return NULL;
   }
   leitor = malloc(sizeof(LEITOR));
   if (leitor == NULL) {
-    leitor_erro(erro, capacidade, "Sem memoria para criar o leitor.");
+    printf("ERRO=Sem memoria para criar o leitor.\n");
     return NULL;
   }
   leitor->arquivo = fopen(caminho, "rb");
   if (leitor->arquivo == NULL) {
-    leitor_erro(erro, capacidade, "Nao foi possivel abrir o arquivo de entrada.");
+    printf("ERRO=Nao foi possivel abrir o arquivo de entrada.\n");
     free(leitor);
     return NULL;
   }
   leitor->datatran = strcmp(nome, "datatran") == 0;
   leitor->tabela = ler_cabecalho(leitor->arquivo, leitor->datatran);
   if (leitor->tabela == NULL) {
-    leitor_erro(erro, capacidade,
-                "Cabecalho incompativel com o leitor, erro de leitura ou falta de memoria.");
+    printf("ERRO=Cabecalho incompativel com o leitor, erro de leitura ou falta de memoria.\n");
     fclose(leitor->arquivo);
     free(leitor);
     return NULL;
@@ -96,15 +88,14 @@ const TABELA *leitor_tabela(const LEITOR *leitor) {
   return leitor != NULL ? leitor->tabela : NULL;
 }
 
-bool leitor_proximo(LEITOR *leitor, ITEM **item,
-                     char *erro, size_t capacidade) {
+bool leitor_proximo(LEITOR *leitor, ITEM **item) {
   char *linha = NULL;
   char **campos = NULL;
   size_t quantidade = 0;
   bool valido;
 
   if (leitor == NULL || item == NULL) {
-    leitor_erro(erro, capacidade, "Leitor ou referencia de item nula.");
+    printf("ERRO=Leitor ou referencia de item nula.\n");
     return false;
   }
   *item = NULL;
@@ -113,7 +104,7 @@ bool leitor_proximo(LEITOR *leitor, ITEM **item,
     free(linha);
     linha = NULL;
     if (!csv_ler_linha(leitor->arquivo, &linha)) {
-      leitor_erro(erro, capacidade, "Erro de leitura, CSV invalido ou falta de memoria.");
+      printf("ERRO=Erro de leitura, CSV invalido ou falta de memoria.\n");
       return false;
     }
   } while (csv_linha_vazia(linha));
@@ -137,8 +128,7 @@ bool leitor_proximo(LEITOR *leitor, ITEM **item,
     /* Se a criacao falhou, as alocacoes ainda pertencem ao leitor. */
     campos_apagar(&campos, quantidade);
     free(linha);
-    leitor_erro(erro, capacidade,
-                "Registro CSV invalido, colunas excedentes ou memoria insuficiente.");
+    printf("ERRO=Registro CSV invalido, colunas excedentes ou memoria insuficiente.\n");
     return false;
   }
   leitor->lidos++;

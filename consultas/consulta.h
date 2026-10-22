@@ -6,8 +6,7 @@
 
 typedef struct consulta CONSULTA;
 
-CONSULTA *consulta_ler(const char *caminho, const TABELA *tabela,
-                       char *erro, size_t capacidade);
+CONSULTA *consulta_ler(const char *caminho, const TABELA *tabela);
 void consulta_apagar(CONSULTA **consulta);
 bool consulta_aceita(const CONSULTA *consulta, const ITEM *item);
 double consulta_similaridade(const CONSULTA *consulta, const ITEM *item);

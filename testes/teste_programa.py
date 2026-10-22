@@ -64,7 +64,7 @@ def executar(executavel, entrada, consulta, saida, base="lista_seq",
         "AddressSanitizer", "LeakSanitizer", "runtime error:",
     )), f"erro de memoria ou comportamento indefinido:\n{processo.stderr}")
     exigir((processo.returncode == 0) == sucesso,
-           f"codigo de retorno inesperado: {comando}\n{processo.stderr}")
+           f"codigo de retorno inesperado: {comando}\n{processo.stdout}\n{processo.stderr}")
     metricas = dict(linha.split("=", 1) for linha in processo.stdout.splitlines())
     exigir(all(chave in metricas for chave in CHAVES), "metricas ausentes")
     exigir(metricas["STATUS"] == ("OK" if sucesso else "ERROR"), "STATUS incorreto")
@@ -72,8 +72,9 @@ def executar(executavel, entrada, consulta, saida, base="lista_seq",
         valor = float(metricas[chave])
         exigir(math.isfinite(valor) and valor >= 0, f"tempo invalido: {chave}")
     if not sucesso:
-        exigir(processo.stderr, "falha deve explicar o erro")
+        exigir(metricas.get("ERRO"), "falha deve explicar o erro com printf")
         return metricas, []
+    exigir(set(metricas) == set(CHAVES), "sucesso deve imprimir somente os indicadores")
     with saida.open(newline="", encoding=codificacao) as arquivo:
         linhas = list(csv.reader(arquivo, delimiter=delimitador))
     exigir(len(linhas[0]) == colunas, "cabecalho deve conservar as colunas da entrada")

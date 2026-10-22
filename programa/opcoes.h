@@ -15,9 +15,9 @@ typedef struct {
   size_t limite;
 } OPCOES;
 
-/* Top-k e limite assumem zero; as seis opcoes de selecao/caminhos sao obrigatorias. */
-bool opcoes_ler(int argc, char **argv, OPCOES *opcoes,
-                char *erro, size_t capacidade);
+/* Top-k e limite assumem zero; as seis opcoes de selecao/caminhos sao obrigatorias.
+ * Uma opcao invalida produz mensagem ERRO com printf e retorno false. */
+bool opcoes_ler(int argc, char **argv, OPCOES *opcoes);
 void opcoes_imprimir_uso(void);
 
 #endif

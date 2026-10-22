@@ -8,6 +8,6 @@
 /* Preserva as colunas e visita o resultado sem remove-lo; top_k zero exporta tudo. */
 bool exportacao_gravar(const char *caminho, const TABELA *tabela,
                        COLECAO *resultado, size_t top_k,
-                       METRICAS *metricas, char *erro, size_t capacidade);
+                       METRICAS *metricas);
 
 #endif

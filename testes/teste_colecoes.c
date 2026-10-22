@@ -9,7 +9,7 @@ static int falhas = 0;
 
 static void conferir(bool condicao, const char *mensagem) {
   if (!condicao) {
-    fprintf(stderr, "FALHA: %s\n", mensagem);
+    printf("FALHA: %s\n", mensagem);
     falhas++;
   }
 }
@@ -188,7 +188,6 @@ int main(void) {
   TABELA *tabela = NULL;
   CONSULTA *consulta = NULL;
   FILE *arquivo = fopen("consulta_tads.tmp", "wb");
-  char erro[256];
   TIPO_COLECAO tipo;
 
   conferir(csv_separar(cabecalho, ',', &campos, &quantidade), "cabecalho de teste");
@@ -197,7 +196,7 @@ int main(void) {
   if (arquivo != NULL && tabela != NULL) {
     fputs("ORDER|valor|ASC\nGROUP|grupo|subgrupo\nCROSS|valor|id\n", arquivo);
     fclose(arquivo);
-    consulta = consulta_ler("consulta_tads.tmp", tabela, erro, sizeof(erro));
+    consulta = consulta_ler("consulta_tads.tmp", tabela);
     conferir(consulta != NULL, "consulta dos TADs");
     if (consulta != NULL) {
       for (tipo = COLECAO_PILHA; tipo <= COLECAO_LISTA_CRUZ; tipo++) {
@@ -210,6 +209,6 @@ int main(void) {
   consulta_apagar(&consulta);
   tabela_apagar(&tabela);
   remove("consulta_tads.tmp");
-  puts("TADs: oito estruturas, dois eixos e 64 combinacoes verificados.");
+  printf("TADs: oito estruturas, dois eixos e 64 combinacoes verificados.\n");
   return falhas == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

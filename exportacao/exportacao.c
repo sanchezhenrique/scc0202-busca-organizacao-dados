@@ -13,7 +13,7 @@ static bool gravar_linha(FILE *arquivo, const char *linha, const char *quebra) {
 
 bool exportacao_gravar(const char *caminho, const TABELA *tabela,
                        COLECAO *resultado, size_t top_k,
-                       METRICAS *metricas, char *erro, size_t capacidade) {
+                       METRICAS *metricas) {
   FILE *arquivo;
   ITEM *item;
   const char *cabecalho;
@@ -24,6 +24,7 @@ bool exportacao_gravar(const char *caminho, const TABELA *tabela,
 
   if (caminho == NULL || tabela == NULL || resultado == NULL || metricas == NULL ||
       !metricas_agora(&inicio)) {
+    printf("ERRO=Parametros de exportacao invalidos ou relogio indisponivel.\n");
     return false;
   }
   cabecalho = tabela_cabecalho(tabela);
@@ -48,8 +49,8 @@ bool exportacao_gravar(const char *caminho, const TABELA *tabela,
   } else {
     sucesso = false;
   }
-  if (!sucesso && erro != NULL && capacidade > 0) {
-    snprintf(erro, capacidade, "Falha ao abrir, gravar ou fechar a saida.");
+  if (!sucesso) {
+    printf("ERRO=Falha ao abrir, gravar ou fechar a saida.\n");
   }
   return sucesso;
 }

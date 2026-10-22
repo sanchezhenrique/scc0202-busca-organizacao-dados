@@ -3,8 +3,7 @@
 #include <stdio.h>
 
 bool busca_executar(COLECAO *base, COLECAO *resultado,
-                    const CONSULTA *consulta, METRICAS *metricas,
-                    char *erro, size_t capacidade) {
+                    const CONSULTA *consulta, METRICAS *metricas) {
   ITEM *item;
   double inicio;
   double fim;
@@ -33,8 +32,8 @@ bool busca_executar(COLECAO *base, COLECAO *resultado,
   } else {
     sucesso = false;
   }
-  if (!sucesso && erro != NULL && capacidade > 0) {
-    snprintf(erro, capacidade, "Falha na busca, insercao de resultado ou medicao.");
+  if (!sucesso) {
+    printf("ERRO=Falha na busca, insercao de resultado ou medicao.\n");
   }
   return sucesso;
 }

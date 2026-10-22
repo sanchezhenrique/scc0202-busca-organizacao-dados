@@ -133,8 +133,7 @@ static bool interpretar(CONSULTA *consulta, char *linha, const TABELA *tabela) {
   return true;
 }
 
-CONSULTA *consulta_ler(const char *caminho, const TABELA *tabela,
-                       char *erro, size_t capacidade) {
+CONSULTA *consulta_ler(const char *caminho, const TABELA *tabela) {
   FILE *arquivo = caminho != NULL ? fopen(caminho, "rb") : NULL;
   CONSULTA *consulta = calloc(1, sizeof(CONSULTA));
   char *linha = NULL;
@@ -165,9 +164,7 @@ CONSULTA *consulta_ler(const char *caminho, const TABELA *tabela,
     }
   }
   if (!valido) {
-    if (erro != NULL && capacidade > 0) {
-      snprintf(erro, capacidade, "Consulta, linha %zu: arquivo, comando ou parametro invalido.", numero);
-    }
+    printf("ERRO=Consulta, linha %zu: arquivo, comando ou parametro invalido.\n", numero);
     consulta_apagar(&consulta);
   }
   return consulta;

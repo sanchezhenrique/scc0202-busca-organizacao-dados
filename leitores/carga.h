@@ -7,6 +7,6 @@
 
 /* Carrega diretamente na base; limite zero le ate EOF, sem contar o cabecalho. */
 bool carga_executar(LEITOR *leitor, COLECAO *base, size_t limite,
-                    METRICAS *metricas, char *erro, size_t capacidade);
+                    METRICAS *metricas);
 
 #endif

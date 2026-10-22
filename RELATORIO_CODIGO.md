@@ -45,11 +45,11 @@ As interfaces ficam nos `.h`, protegidos por include guards. As representações
 
 ### 3.1. Função `main`
 
-`main` cria três variáveis principais: as opções, as métricas inicialmente zeradas e o espaço para uma mensagem de erro. A chamada a `opcoes_ler` decide se os argumentos permitem continuar.
+`main` cria as opções e as métricas inicialmente zeradas. As mensagens de falha são impressas diretamente pela etapa responsável, sem vetor intermediário de erro. A chamada a `opcoes_ler` decide se os argumentos permitem continuar.
 
-Se os argumentos estiverem corretos, chama `executar`. Caso contrário, imprime o modo de uso. Ao final, imprime uma mensagem em `stderr` quando houve falha, apresenta as métricas e retorna `EXIT_SUCCESS` ou `EXIT_FAILURE`.
+Se os argumentos estiverem corretos, chama `executar`. Caso contrário, imprime o modo de uso. Cada falha é informada com `printf` na função que a identifica. Ao final, `main` apresenta as métricas e retorna `EXIT_SUCCESS` ou `EXIT_FAILURE`.
 
-O retorno do processo permite que um script diferencie sucesso de erro sem interpretar mensagens em português. A saída padrão permanece no formato `CHAVE=VALOR`.
+O retorno do processo permite que um script diferencie sucesso de erro sem interpretar mensagens em português. A saída padrão permanece no formato `CHAVE=VALOR`: as falhas acrescentam `ERRO=...`, e argumentos inválidos também produzem `USO=...`. Em uma execução bem-sucedida, são impressos somente os oito indicadores.
 
 ### 3.2. Função `executar`
 
@@ -177,6 +177,14 @@ O laço também produz o último campo vazio quando a linha termina em delimitad
 
 No DATATRAN, um valor como `"Aclive;Reta"` é um único campo, apesar do ponto e vírgula interno. A distinção depende das aspas, e não de uma separação indiscriminada por `;`.
 
+### 6.4. Funções de leitura e escrita utilizadas
+
+`fgets` é a função que efetivamente lê o conteúdo dos arquivos. Tanto o CSV quanto a consulta passam por `arquivo_ler_linha`. `fopen` prepara o acesso, `ferror` confere falhas e `fclose` encerra o acesso. O programa não usa `scanf`, `fscanf`, `sscanf`, `fread` ou `fgetc`. Os argumentos da execução são recebidos em `argc` e `argv`.
+
+`csv_separar` e `csv_ler_campo` percorrem o texto já lido para identificar os campos. `strtod`, em `dados/item.c`, converte um desses textos em número; não lê o arquivo nem o teclado. A função `ler_natural`, das opções, converte os caracteres dos limites com um laço próprio.
+
+A saída na tela utiliza somente `printf`. A escrita de conteúdo nos arquivos utiliza `fputs`, inclusive para preservar a linha original do CSV. Nos testes, `tmpfile` cria arquivos temporários e `rewind` retorna ao início para permitir sua leitura.
+
 ## 7. Seleção do leitor em `leitores/leitor.c`
 
 O TAD oculto `LEITOR` guarda o arquivo aberto, sua tabela, a contagem de registros entregues e a indicação de uso do DATATRAN. Ele não guarda a propriedade dos registros que já entregou ao cliente.
@@ -189,7 +197,7 @@ O TAD oculto `LEITOR` guarda o arquivo aberto, sua tabela, a contagem de registr
 
 A validação usa nomes, sem fixar a posição dessas colunas no código. As demais colunas do cabeçalho continuam disponíveis para consultas. Um arquivo do outro leitor é rejeitado, em vez de ser interpretado silenciosamente com o delimitador errado.
 
-`leitor_erro` escreve uma mensagem respeitando a capacidade do espaço recebido. Se a abertura ou o cabeçalho falhar, a memória e o arquivo já adquiridos são desfeitos antes do retorno nulo.
+O leitor imprime os diagnósticos diretamente com `printf`, no formato `ERRO=...`. Se a abertura ou o cabeçalho falhar, a memória e o arquivo já adquiridos são desfeitos antes do retorno nulo. As operações não recebem vetor de erro nem parâmetro de capacidade para mensagens.
 
 `leitor_tabela` entrega uma referência constante à tabela criada na abertura. A consulta usa essa referência para localizar colunas, e a exportação usa seu cabeçalho. A tabela continua pertencendo ao leitor e não deve ser destruída pelo cliente separadamente.
 
@@ -453,7 +461,7 @@ O uso de `<time.h>` foi autorizado pelo usuário. O `Makefile` define `_POSIX_C_
 | `RESULT_INSERT_MS` | Soma dos intervalos de inserção no resultado. |
 | `WRITE_MS` | Abertura, escrita e fechamento da saída. |
 
-`metricas_imprimir` utiliza o mesmo formato nas falhas, permitindo observar as etapas e contagens já realizadas. Diagnósticos em português são escritos em `stderr`.
+`metricas_imprimir` utiliza o mesmo formato nas falhas, permitindo observar as etapas e contagens já realizadas. Todas as mensagens na tela utilizam `printf`; os diagnósticos em português aparecem em `ERRO=...`, na saída padrão, antes das métricas. Não há formatação intermediária em buffers de erro.
 
 ## 16. Responsabilidade pela memória
 

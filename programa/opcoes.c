@@ -71,13 +71,13 @@ static bool atribuir_opcao(OPCOES *opcoes, int indice, const char *valor) {
   return true;
 }
 
-bool opcoes_ler(int argc, char **argv, OPCOES *opcoes,
-                char *erro, size_t capacidade) {
+bool opcoes_ler(int argc, char **argv, OPCOES *opcoes) {
   OPCOES vazias = {NULL, NULL, NULL, NULL, COLECAO_PILHA, COLECAO_PILHA, 0, 0};
   bool presentes[8] = {false};
   int i;
 
   if (opcoes == NULL || argv == NULL || argc < 1) {
+    printf("ERRO=Parametros invalidos para ler as opcoes.\n");
     return false;
   }
   *opcoes = vazias;
@@ -87,35 +87,28 @@ bool opcoes_ler(int argc, char **argv, OPCOES *opcoes,
 
     if (indice < 0 || i + 1 >= argc || presentes[indice] ||
         argv[i + 1][0] == '\0' || !atribuir_opcao(opcoes, indice, argv[i + 1])) {
-      if (erro != NULL && capacidade > 0) {
-        snprintf(erro, capacidade, "Argumento invalido, repetido ou sem valor: %s", argv[i]);
-      }
+      printf("ERRO=Argumento invalido, repetido ou sem valor: %s\n", argv[i]);
       return false;
     }
     presentes[indice] = true;
   }
   for (i = 0; i < 6; i++) {
     if (!presentes[i]) {
-      if (erro != NULL && capacidade > 0) {
-        snprintf(erro, capacidade,
-                  "Informe --reader, --input, --base, --result, --query e --output.");
-      }
+      printf("ERRO=Informe --reader, --input, --base, --result, --query e --output.\n");
       return false;
     }
   }
   /* Impede sobrescrever diretamente a entrada ou a consulta por engano. */
   if (strcmp(opcoes->entrada, opcoes->saida) == 0 ||
       strcmp(opcoes->consulta, opcoes->saida) == 0) {
-    if (erro != NULL && capacidade > 0) {
-      snprintf(erro, capacidade, "A saida deve ter caminho diferente da entrada e da consulta.");
-    }
+    printf("ERRO=A saida deve ter caminho diferente da entrada e da consulta.\n");
     return false;
   }
   return true;
 }
 
 void opcoes_imprimir_uso(void) {
-  fputs("Uso: ./trabalho --reader nasa|datatran --input arquivo.csv --base estrutura "
+  printf("USO=./trabalho --reader nasa|datatran --input arquivo.csv --base estrutura "
         "--result estrutura --query consulta.txt --output resultado.csv "
-        "[--top-k N] [--limit N]\n", stderr);
+        "[--top-k N] [--limit N]\n");
 }

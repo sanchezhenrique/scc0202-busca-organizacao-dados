@@ -3,23 +3,21 @@
 #include <stdio.h>
 
 bool carga_executar(LEITOR *leitor, COLECAO *base, size_t limite,
-                    METRICAS *metricas, char *erro, size_t capacidade) {
+                    METRICAS *metricas) {
   double inicio;
   double fim;
   bool sucesso = true;
 
   if (leitor == NULL || base == NULL || metricas == NULL ||
       !metricas_agora(&inicio)) {
-    if (erro != NULL && capacidade > 0) {
-      snprintf(erro, capacidade, "Carga invalida ou relogio indisponivel.");
-    }
+    printf("ERRO=Carga invalida ou relogio indisponivel.\n");
     return false;
   }
   /* Verifica o limite antes de ler para nao criar um item alem do solicitado. */
   while (limite == 0 || metricas->registros_entrada < limite) {
     ITEM *item = NULL;
 
-    if (!leitor_proximo(leitor, &item, erro, capacidade)) {
+    if (!leitor_proximo(leitor, &item)) {
       sucesso = false;
       break;
     }
@@ -29,18 +27,14 @@ bool carga_executar(LEITOR *leitor, COLECAO *base, size_t limite,
     if (!colecao_inserir(base, item)) {
       /* A base assume o item somente depois da insercao bem-sucedida. */
       item_apagar(&item);
-      if (erro != NULL && capacidade > 0) {
-        snprintf(erro, capacidade, "Sem memoria para inserir um item na base.");
-      }
+      printf("ERRO=Sem memoria para inserir um item na base.\n");
       sucesso = false;
       break;
     }
     metricas->registros_entrada++;
   }
   if (!metricas_agora(&fim)) {
-    if (erro != NULL && capacidade > 0) {
-      snprintf(erro, capacidade, "Relogio indisponivel ao concluir a carga.");
-    }
+    printf("ERRO=Relogio indisponivel ao concluir a carga.\n");
     return false;
   }
   /* A carga inclui leitura, criacao dos itens e insercao na estrutura da base. */
