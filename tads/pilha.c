@@ -1,7 +1,7 @@
 #include "estruturas.h"
 
 typedef struct no {
-  REGISTRO *registro;
+  ITEM *item;
   struct no *proximo;
 } NO;
 
@@ -15,28 +15,28 @@ PILHA *pilha_criar(void) {
   return estrutura;
 }
 
-bool pilha_inserir(PILHA *estrutura, REGISTRO *registro) {
+bool pilha_inserir(PILHA *estrutura, ITEM *item) {
   NO *novo;
 
-  if (estrutura == NULL || registro == NULL) {
+  if (estrutura == NULL || item == NULL) {
     return false;
   }
   novo = malloc(sizeof(NO));
   if (novo == NULL) {
     return false;
   }
-  novo->registro = registro;
+  novo->item = item;
   novo->proximo = NULL;
-  /* Inserir no inicio faz o ultimo registro lido ser o primeiro acessado. */
+  /* Inserir no inicio faz o ultimo item lido ser o primeiro acessado. */
   novo->proximo = estrutura->inicio;
   estrutura->inicio = novo;
   pilha_reiniciar(estrutura);
   return true;
 }
 
-REGISTRO *pilha_retirar(PILHA *estrutura) {
+ITEM *pilha_retirar(PILHA *estrutura) {
   NO *removido;
-  REGISTRO *registro;
+  ITEM *item;
 
   if (estrutura == NULL) {
     return NULL;
@@ -45,11 +45,11 @@ REGISTRO *pilha_retirar(PILHA *estrutura) {
   if (removido == NULL) {
     return NULL;
   }
-  registro = removido->registro;
+  item = removido->item;
   estrutura->inicio = removido->proximo;
   free(removido);
   pilha_reiniciar(estrutura);
-  return registro;
+  return item;
 }
 
 void pilha_reiniciar(PILHA *estrutura) {
@@ -58,23 +58,23 @@ void pilha_reiniciar(PILHA *estrutura) {
   }
 }
 
-REGISTRO *pilha_proximo(PILHA *estrutura) {
-  REGISTRO *registro = NULL;
+ITEM *pilha_proximo(PILHA *estrutura) {
+  ITEM *item = NULL;
 
   if (estrutura != NULL && estrutura->atual != NULL) {
-    registro = estrutura->atual->registro;
+    item = estrutura->atual->item;
     estrutura->atual = estrutura->atual->proximo;
   }
-  return registro;
+  return item;
 }
 
-void pilha_apagar(PILHA **estrutura, bool liberar_registros) {
-  REGISTRO *registro;
+void pilha_apagar(PILHA **estrutura, bool liberar_itens) {
+  ITEM *item;
 
   if (estrutura != NULL && *estrutura != NULL) {
-    while ((registro = pilha_retirar(*estrutura)) != NULL) {
-      if (liberar_registros) {
-        registro_apagar(&registro);
+    while ((item = pilha_retirar(*estrutura)) != NULL) {
+      if (liberar_itens) {
+        item_apagar(&item);
       }
     }
     free(*estrutura);

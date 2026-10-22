@@ -1,7 +1,7 @@
 #include "estruturas.h"
 
 typedef struct no {
-  REGISTRO *registro;
+  ITEM *item;
   struct no *proximo;
 } NO;
 
@@ -16,17 +16,17 @@ FILA *fila_criar(void) {
   return estrutura;
 }
 
-bool fila_inserir(FILA *estrutura, REGISTRO *registro) {
+bool fila_inserir(FILA *estrutura, ITEM *item) {
   NO *novo;
 
-  if (estrutura == NULL || registro == NULL) {
+  if (estrutura == NULL || item == NULL) {
     return false;
   }
   novo = malloc(sizeof(NO));
   if (novo == NULL) {
     return false;
   }
-  novo->registro = registro;
+  novo->item = item;
   novo->proximo = NULL;
   if (estrutura->fim == NULL) {
     estrutura->inicio = novo;
@@ -38,9 +38,9 @@ bool fila_inserir(FILA *estrutura, REGISTRO *registro) {
   return true;
 }
 
-REGISTRO *fila_retirar(FILA *estrutura) {
+ITEM *fila_retirar(FILA *estrutura) {
   NO *removido;
-  REGISTRO *registro;
+  ITEM *item;
 
   if (estrutura == NULL) {
     return NULL;
@@ -49,14 +49,14 @@ REGISTRO *fila_retirar(FILA *estrutura) {
   if (removido == NULL) {
     return NULL;
   }
-  registro = removido->registro;
+  item = removido->item;
   estrutura->inicio = removido->proximo;
   if (estrutura->fim == removido) {
     estrutura->fim = NULL;
   }
   free(removido);
   fila_reiniciar(estrutura);
-  return registro;
+  return item;
 }
 
 void fila_reiniciar(FILA *estrutura) {
@@ -65,23 +65,23 @@ void fila_reiniciar(FILA *estrutura) {
   }
 }
 
-REGISTRO *fila_proximo(FILA *estrutura) {
-  REGISTRO *registro = NULL;
+ITEM *fila_proximo(FILA *estrutura) {
+  ITEM *item = NULL;
 
   if (estrutura != NULL && estrutura->atual != NULL) {
-    registro = estrutura->atual->registro;
+    item = estrutura->atual->item;
     estrutura->atual = estrutura->atual->proximo;
   }
-  return registro;
+  return item;
 }
 
-void fila_apagar(FILA **estrutura, bool liberar_registros) {
-  REGISTRO *registro;
+void fila_apagar(FILA **estrutura, bool liberar_itens) {
+  ITEM *item;
 
   if (estrutura != NULL && *estrutura != NULL) {
-    while ((registro = fila_retirar(*estrutura)) != NULL) {
-      if (liberar_registros) {
-        registro_apagar(&registro);
+    while ((item = fila_retirar(*estrutura)) != NULL) {
+      if (liberar_itens) {
+        item_apagar(&item);
       }
     }
     free(*estrutura);

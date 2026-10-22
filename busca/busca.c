@@ -5,7 +5,7 @@
 bool busca_executar(COLECAO *base, COLECAO *resultado,
                     const CONSULTA *consulta, METRICAS *metricas,
                     char *erro, size_t capacidade) {
-  REGISTRO *registro;
+  ITEM *item;
   double inicio;
   double fim;
   double antes;
@@ -13,12 +13,12 @@ bool busca_executar(COLECAO *base, COLECAO *resultado,
   bool sucesso = base != NULL && resultado != NULL && consulta != NULL && metricas != NULL;
 
   sucesso = sucesso && metricas_agora(&inicio) && colecao_reiniciar(base, 0);
-  while (sucesso && (registro = colecao_proximo(base)) != NULL) {
-    if (consulta_aceita(consulta, registro)) {
+  while (sucesso && (item = colecao_proximo(base)) != NULL) {
+    if (consulta_aceita(consulta, item)) {
       metricas->registros_aceitos++;
       sucesso = metricas_agora(&antes);
       if (sucesso) {
-        sucesso = colecao_inserir(resultado, registro);
+        sucesso = colecao_inserir(resultado, item);
         if (metricas_agora(&depois)) {
           metricas->insercao_ms += depois - antes;
         } else {

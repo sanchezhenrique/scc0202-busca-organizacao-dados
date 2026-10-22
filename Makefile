@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Wall -Wextra -pedantic -O2
 CPPFLAGS = -D_POSIX_C_SOURCE=200809L
 LDLIBS = -lm
 
-FONTES = main.c programa/opcoes.c programa/metricas.c dados/registro.c \
+FONTES = main.c programa/opcoes.c programa/metricas.c dados/item.c dados/tabela.c \
          leitores/csv.c leitores/leitor.c leitores/datatran.c leitores/carga.c \
          consultas/consulta.c busca/busca.c exportacao/exportacao.c \
          tads/colecao.c tads/pilha.c tads/fila.c tads/lista_seq.c \

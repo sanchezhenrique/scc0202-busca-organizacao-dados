@@ -1,7 +1,7 @@
 #ifndef COLECAO_H
 #define COLECAO_H
 
-#include "../dados/registro.h"
+#include "../dados/item.h"
 
 struct consulta;
 typedef struct colecao COLECAO;
@@ -12,14 +12,16 @@ typedef enum {
 
 bool colecao_tipo(const char *nome, TIPO_COLECAO *tipo);
 COLECAO *colecao_criar(TIPO_COLECAO tipo, const struct consulta *consulta);
-bool colecao_inserir(COLECAO *colecao, REGISTRO *registro);
-REGISTRO *colecao_retirar(COLECAO *colecao);
+bool colecao_inserir(COLECAO *colecao, ITEM *item);
+/* Retira o ponteiro sem destruir o ITEM; o chamador decide seu destino. */
+ITEM *colecao_retirar(COLECAO *colecao);
 size_t colecao_tamanho(const COLECAO *colecao);
 /* Reinicie antes de percorrer. Somente lista_cruz aceita eixo 1.
  * Insercoes e retiradas reiniciam o percurso; nao as misture com uma visita em curso. */
 bool colecao_reiniciar(COLECAO *colecao, unsigned int eixo);
-REGISTRO *colecao_proximo(COLECAO *colecao);
-/* A base libera registros; o resultado libera apenas sua propria estrutura. */
-void colecao_apagar(COLECAO **colecao, bool liberar_registros);
+/* Consulta sem retirar: o ITEM continua pertencendo a base. */
+ITEM *colecao_proximo(COLECAO *colecao);
+/* A base libera itens; o resultado libera apenas sua propria estrutura. */
+void colecao_apagar(COLECAO **colecao, bool liberar_itens);
 
 #endif

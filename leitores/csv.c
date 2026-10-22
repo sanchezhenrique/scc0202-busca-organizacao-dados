@@ -1,9 +1,9 @@
 #include "csv.h"
-#include "../dados/registro.h"
+#include "../dados/item.h"
 
 #include <string.h>
 
-/* fgets le blocos; o buffer cresce somente quando o registro precisa de mais espaco. */
+/* fgets le blocos; o buffer cresce somente quando o item precisa de mais espaco. */
 bool arquivo_ler_linha(FILE *arquivo, char **linha, bool csv) {
   char bloco[1024];
   char *novo;

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 /*
- * Le um registro logico, que pode conter quebras de linha entre aspas.
+ * Le um item logico, que pode conter quebras de linha entre aspas.
  * O chamador libera a string; no EOF normal, retorna true com *linha == NULL.
  */
 bool csv_ler_linha(FILE *arquivo, char **linha);

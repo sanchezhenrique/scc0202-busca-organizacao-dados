@@ -15,22 +15,22 @@ bool carga_executar(LEITOR *leitor, COLECAO *base, size_t limite,
     }
     return false;
   }
-  /* Verifica o limite antes de ler para nao criar um registro alem do solicitado. */
+  /* Verifica o limite antes de ler para nao criar um item alem do solicitado. */
   while (limite == 0 || metricas->registros_entrada < limite) {
-    REGISTRO *registro = NULL;
+    ITEM *item = NULL;
 
-    if (!leitor_proximo(leitor, &registro, erro, capacidade)) {
+    if (!leitor_proximo(leitor, &item, erro, capacidade)) {
       sucesso = false;
       break;
     }
-    if (registro == NULL) {
+    if (item == NULL) {
       break;
     }
-    if (!colecao_inserir(base, registro)) {
+    if (!colecao_inserir(base, item)) {
       /* A base assume o item somente depois da insercao bem-sucedida. */
-      registro_apagar(&registro);
+      item_apagar(&item);
       if (erro != NULL && capacidade > 0) {
-        snprintf(erro, capacidade, "Sem memoria para inserir um registro na base.");
+        snprintf(erro, capacidade, "Sem memoria para inserir um item na base.");
       }
       sucesso = false;
       break;
@@ -43,7 +43,7 @@ bool carga_executar(LEITOR *leitor, COLECAO *base, size_t limite,
     }
     return false;
   }
-  /* A carga inclui leitura, criacao dos registros e insercao na estrutura da base. */
+  /* A carga inclui leitura, criacao dos itens e insercao na estrutura da base. */
   metricas->carga_ms = fim - inicio;
   return sucesso;
 }

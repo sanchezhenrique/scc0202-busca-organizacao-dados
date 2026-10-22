@@ -3,7 +3,7 @@
 #include <string.h>
 
 struct lista_seq {
-  REGISTRO **registros;
+  ITEM **itens;
   size_t tamanho;
   size_t capacidade;
   size_t atual;
@@ -13,43 +13,43 @@ LISTA_SEQ *lista_seq_criar(void) {
   return calloc(1, sizeof(LISTA_SEQ));
 }
 
-bool lista_seq_inserir(LISTA_SEQ *lista, REGISTRO *registro) {
-  REGISTRO **novo;
+bool lista_seq_inserir(LISTA_SEQ *lista, ITEM *item) {
+  ITEM **novo;
   size_t capacidade;
 
-  if (lista == NULL || registro == NULL) {
+  if (lista == NULL || item == NULL) {
     return false;
   }
   if (lista->tamanho == lista->capacidade) {
-    if (lista->capacidade > (size_t)-1 / sizeof(REGISTRO *) / 2) {
+    if (lista->capacidade > (size_t)-1 / sizeof(ITEM *) / 2) {
       return false;
     }
     capacidade = lista->capacidade == 0 ? 16 : lista->capacidade * 2;
-    novo = realloc(lista->registros, capacidade * sizeof(REGISTRO *));
+    novo = realloc(lista->itens, capacidade * sizeof(ITEM *));
     if (novo == NULL) {
       return false;
     }
-    lista->registros = novo;
+    lista->itens = novo;
     lista->capacidade = capacidade;
   }
-  lista->registros[lista->tamanho] = registro;
+  lista->itens[lista->tamanho] = item;
   lista->tamanho++;
   lista->atual = 0;
   return true;
 }
 
-REGISTRO *lista_seq_retirar(LISTA_SEQ *lista) {
-  REGISTRO *registro;
+ITEM *lista_seq_retirar(LISTA_SEQ *lista) {
+  ITEM *item;
 
   if (lista == NULL || lista->tamanho == 0) {
     return NULL;
   }
-  registro = lista->registros[0];
+  item = lista->itens[0];
   lista->tamanho--;
-  memmove(lista->registros, lista->registros + 1,
-          lista->tamanho * sizeof(REGISTRO *));
+  memmove(lista->itens, lista->itens + 1,
+          lista->tamanho * sizeof(ITEM *));
   lista->atual = 0;
-  return registro;
+  return item;
 }
 
 void lista_seq_reiniciar(LISTA_SEQ *lista) {
@@ -58,21 +58,21 @@ void lista_seq_reiniciar(LISTA_SEQ *lista) {
   }
 }
 
-REGISTRO *lista_seq_proximo(LISTA_SEQ *lista) {
+ITEM *lista_seq_proximo(LISTA_SEQ *lista) {
   if (lista == NULL || lista->atual == lista->tamanho) {
     return NULL;
   }
-  return lista->registros[lista->atual++];
+  return lista->itens[lista->atual++];
 }
 
-void lista_seq_apagar(LISTA_SEQ **lista, bool liberar_registros) {
+void lista_seq_apagar(LISTA_SEQ **lista, bool liberar_itens) {
   size_t i;
 
   if (lista != NULL && *lista != NULL) {
-    for (i = 0; liberar_registros && i < (*lista)->tamanho; i++) {
-      registro_apagar(&(*lista)->registros[i]);
+    for (i = 0; liberar_itens && i < (*lista)->tamanho; i++) {
+      item_apagar(&(*lista)->itens[i]);
     }
-    free((*lista)->registros);
+    free((*lista)->itens);
     free(*lista);
     *lista = NULL;
   }

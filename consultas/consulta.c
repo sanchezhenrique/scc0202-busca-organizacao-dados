@@ -188,7 +188,7 @@ void consulta_apagar(CONSULTA **consulta) {
   }
 }
 
-double consulta_similaridade(const CONSULTA *consulta, const REGISTRO *registro) {
+double consulta_similaridade(const CONSULTA *consulta, const ITEM *item) {
   CRITERIO *criterio;
   double soma = 0;
   double pesos = 0;
@@ -196,13 +196,13 @@ double consulta_similaridade(const CONSULTA *consulta, const REGISTRO *registro)
   double nota;
   double peso;
 
-  if (consulta == NULL || registro == NULL) {
+  if (consulta == NULL || item == NULL) {
     return 0;
   }
   for (criterio = consulta->inicio; criterio != NULL; criterio = criterio->proximo) {
     if (criterio->similaridade) {
       nota = 0;
-      if (registro_numero(registro, criterio->campo, &valor)) {
+      if (item_numero(item, criterio->campo, &valor)) {
         nota = fmax(0, 1 - fabs(valor - criterio->alvo) / criterio->tolerancia);
       }
       /* Escalar os pesos evita transbordamento e conserva a mesma media. */
@@ -214,19 +214,19 @@ double consulta_similaridade(const CONSULTA *consulta, const REGISTRO *registro)
   return pesos > 0 ? soma / pesos : 1;
 }
 
-bool consulta_aceita(const CONSULTA *consulta, const REGISTRO *registro) {
+bool consulta_aceita(const CONSULTA *consulta, const ITEM *item) {
   CRITERIO *criterio;
   const char *campo;
   double numero;
   int comparacao;
   bool aceito;
 
-  if (consulta == NULL || registro == NULL) {
+  if (consulta == NULL || item == NULL) {
     return false;
   }
   for (criterio = consulta->inicio; criterio != NULL; criterio = criterio->proximo) {
     if (!criterio->similaridade) {
-      campo = registro_campo(registro, criterio->campo);
+      campo = item_campo(item, criterio->campo);
       if (campo == NULL || (texto_numero(criterio->valor, &numero) && !texto_numero(campo, &numero)) ||
           (texto_booleano(criterio->valor, &numero) && !texto_booleano(campo, &numero))) {
         return false;
@@ -256,7 +256,7 @@ bool consulta_aceita(const CONSULTA *consulta, const REGISTRO *registro) {
       }
     }
   }
-  return consulta->maior_peso == 0 || consulta_similaridade(consulta, registro) >= consulta->limiar;
+  return consulta->maior_peso == 0 || consulta_similaridade(consulta, item) >= consulta->limiar;
 }
 
 bool consulta_estrutura(const CONSULTA *consulta, TIPO_COLECAO tipo) {
@@ -265,39 +265,39 @@ bool consulta_estrutura(const CONSULTA *consulta, TIPO_COLECAO tipo) {
          (tipo != COLECAO_LISTA_CRUZ || (consulta != NULL && consulta->tem_cruzamento));
 }
 
-int consulta_comparar(const CONSULTA *consulta, const REGISTRO *a, const REGISTRO *b) {
+int consulta_comparar(const CONSULTA *consulta, const ITEM *a, const ITEM *b) {
   double x;
   double y;
   int comparacao;
 
   if (consulta == NULL || !consulta->tem_ordem) {
-    return (registro_posicao(a) > registro_posicao(b)) -
-           (registro_posicao(a) < registro_posicao(b));
+    return (item_posicao(a) > item_posicao(b)) -
+           (item_posicao(a) < item_posicao(b));
   }
   if (consulta->por_similaridade) {
     x = consulta_similaridade(consulta, a);
     y = consulta_similaridade(consulta, b);
     comparacao = (x > y) - (x < y);
   } else {
-    comparacao = texto_comparar(registro_campo(a, consulta->ordem), registro_campo(b, consulta->ordem));
+    comparacao = texto_comparar(item_campo(a, consulta->ordem), item_campo(b, consulta->ordem));
   }
   return consulta->descendente ? -comparacao : comparacao;
 }
 
-const char *consulta_grupo(const CONSULTA *consulta, const REGISTRO *registro, unsigned int nivel) {
+const char *consulta_grupo(const CONSULTA *consulta, const ITEM *item, unsigned int nivel) {
   if (consulta == NULL || nivel > 1) {
     return "";
   }
-  return registro_campo(registro, consulta->grupos[nivel]);
+  return item_campo(item, consulta->grupos[nivel]);
 }
 
-int consulta_cruzar(const CONSULTA *consulta, const REGISTRO *a,
-                    const REGISTRO *b, unsigned int eixo) {
+int consulta_cruzar(const CONSULTA *consulta, const ITEM *a,
+                    const ITEM *b, unsigned int eixo) {
   size_t campo;
 
   if (consulta == NULL || eixo > 1) {
     return 0;
   }
   campo = consulta->cruzamentos[eixo];
-  return texto_comparar(registro_campo(a, campo), registro_campo(b, campo));
+  return texto_comparar(item_campo(a, campo), item_campo(b, campo));
 }

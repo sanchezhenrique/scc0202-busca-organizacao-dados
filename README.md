@@ -44,6 +44,19 @@ As oito opções são `pilha`, `fila`, `lista_seq`, `lista_enc`, `lista_cabeca`,
 
 Escreva as consultas em UTF-8 e os números com ponto decimal. O leitor DATATRAN adapta os campos de consulta de Latin-1 para UTF-8 e normaliza `km`, `latitude` e `longitude`. A saída conserva o formato original: ponto e vírgula, aspas, vírgulas decimais e Latin-1. Os datasets fornecidos não são modificados.
 
+## TAD ITEM e representação dos dados
+
+Cada linha de dados do CSV é representada por um `ITEM`, definido em `dados/item.h` e implementado em `dados/item.c`. Sua estrutura é opaca: leitores, consultas, busca, exportação e as oito estruturas utilizam `ITEM *` e suas operações públicas.
+
+O item guarda a linha original para exportar, os campos separados para consultar, a quantidade de campos e a posição de leitura. O cabeçalho fica em um TAD separado, `TABELA`, em `dados/tabela.h` e `dados/tabela.c`, compartilhado entre os itens do arquivo pelo leitor.
+
+- `item_criar` assume a linha e os campos alocados pelo leitor somente no sucesso.
+- `item_campo`, `item_original` e `item_posicao` consultam o conteúdo sem expor a representação.
+- `item_numero` tenta converter um campo em `double`; valores ausentes ou inválidos são recusados.
+- `item_apagar` libera o conteúdo e zera o ponteiro do chamador.
+
+A carga cria e insere cada item na base. O resultado guarda referências aos mesmos itens, sem copiar as linhas. No encerramento, o resultado libera sua estrutura e a base destrói os itens. Se a inserção falhar, a carga destrói o item que não foi inserido.
+
 ## Verificação e documentação
 
 ```sh

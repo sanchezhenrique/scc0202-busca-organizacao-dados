@@ -1,7 +1,7 @@
 #ifndef EXPORTACAO_H
 #define EXPORTACAO_H
 
-#include "../dados/registro.h"
+#include "../dados/tabela.h"
 #include "../tads/colecao.h"
 #include "../programa/metricas.h"
 

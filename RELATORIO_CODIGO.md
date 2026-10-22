@@ -4,7 +4,7 @@
 
 O executável `trabalho` lê registros, guarda a base em uma estrutura escolhida, executa uma consulta e insere as referências aceitas em outra estrutura. Por fim, grava os primeiros resultados no formato original da entrada e libera a memória.
 
-As duas partes usam o mesmo programa, os mesmos registros e os mesmos TADs. A seleção do leitor altera somente o tratamento da entrada.
+Cada linha de dados é representada por um TAD `ITEM`. As duas partes usam o mesmo programa, o mesmo tipo de item e os mesmos TADs de armazenamento. A seleção do leitor altera somente o tratamento da entrada.
 
 | Leitor | Arquivo fornecido | Registros de dados | Colunas | Separador |
 | --- | --- | ---: | ---: | --- |
@@ -22,7 +22,8 @@ Este relatório explica o funcionamento da implementação. Não apresenta o rel
 | `main.c` | Coordenação das etapas e encerramento. |
 | `programa/opcoes.c` | Interpretação dos argumentos. |
 | `programa/metricas.c` | Leitura do relógio e impressão dos indicadores. |
-| `dados/registro.c` | Representação dos registros, metadados e operações sobre valores textuais. |
+| `dados/item.c` | TAD ITEM: uma linha de dados, seus campos e operações sobre valores textuais. |
+| `dados/tabela.c` | TAD TABELA: cabeçalho, nomes das colunas e delimitador. |
 | `leitores/csv.c` | Leitura de linhas e separação dos campos CSV. |
 | `leitores/leitor.c` | Abertura da base, escolha do leitor e criação dos registros. |
 | `leitores/datatran.c` | Conversão dos campos específicos da Parte 2. |
@@ -34,11 +35,11 @@ Este relatório explica o funcionamento da implementação. Não apresenta o rel
 | `exportacao/exportacao.c` | Gravação do cabeçalho e dos resultados. |
 | `testes/` | Verificação dos TADs, do CSV e das duas aplicações. |
 
-As interfaces ficam nos `.h`, protegidos por include guards. As representações dos TADs ficam nos respectivos `.c`. Por exemplo, o cliente conhece `REGISTRO *`, mas não pode acessar seus campos internos. Ele precisa usar `registro_campo`, `registro_original` e as demais operações públicas.
+As interfaces ficam nos `.h`, protegidos por include guards. As representações dos TADs ficam nos respectivos `.c`. Por exemplo, o cliente conhece `ITEM *`, mas não pode acessar seus campos internos. Ele precisa usar `item_campo`, `item_original` e as demais operações públicas.
 
 `tads/estruturas.h` reúne as declarações dos tipos opacos `PILHA`, `FILA`, `LISTA_SEQ`, `LISTA_ENC`, `LISTA_CABECA`, `LISTA_ORD`, `LISTA_GEN` e `LISTA_CRUZ`. A declaração não revela os nós, vetores ou posições de percurso.
 
-`OPCOES` e `METRICAS` são agrupamentos de dados usados pelo cliente. Não armazenam a representação das listas. Os TADs recebem registros tipados, sem ponteiros genéricos, callbacks ou tabelas de funções. O fluxo é estruturado e não utiliza saltos para rótulos.
+`OPCOES` e `METRICAS` são agrupamentos de dados usados pelo cliente. Não armazenam a representação das listas. Os TADs recebem ponteiros tipados `ITEM *`, sem ponteiros genéricos, callbacks ou tabelas de funções. O fluxo é estruturado e não utiliza saltos para rótulos.
 
 ## 3. Fluxo completo em `main.c`
 
@@ -88,9 +89,9 @@ Os caminhos e o nome do leitor apontam para as strings de `argv`. Não são cóp
 
 `opcoes_imprimir_uso` apresenta os dois leitores disponíveis e o padrão dos argumentos.
 
-## 5. Dados em `dados/registro.c`
+## 5. Dados: TAD ITEM e TAD TABELA
 
-### 5.1. TAD `TABELA`
+### 5.1. TAD `TABELA` em `dados/tabela.c`
 
 A tabela mantém o cabeçalho original, um vetor com os nomes das colunas, a quantidade de colunas e o delimitador. Esses dados são compartilhados pela interpretação da consulta e pela exportação, sem serem copiados para cada registro.
 
@@ -106,24 +107,39 @@ A tabela mantém o cabeçalho original, um vetor com os nomes das colunas, a qua
 
 Nomes duplicados são recusados porque um comando como `FILTER|km|...` ficaria ambíguo se existissem duas colunas chamadas `km`.
 
-### 5.2. TAD `REGISTRO`
+### 5.2. TAD `ITEM` em `dados/item.c`
 
-Cada registro possui a linha original, os campos separados, a quantidade de campos presentes e sua posição de leitura, iniciada em zero. A posição é usada como ordem padrão da lista ordenada.
+`dados/item.h` declara `typedef struct item ITEM` e suas operações. Somente `dados/item.c` define `struct item`. As listas, a pilha e a fila guardam `ITEM *`, sem acessar diretamente os campos da estrutura. A consulta também utiliza os acessores públicos.
+
+Cada item representa uma linha lógica de dados do CSV, que pode incluir quebras internas entre aspas. O cabeçalho é representado separadamente pela `TABELA`.
+
+| Campo interno do ITEM | Finalidade |
+| --- | --- |
+| `original` | String com os bytes da linha lida, preservados para a saída. |
+| `campos` | Vetor de strings separado pelo parser e preparado pelo leitor. |
+| `quantidade` | Número de campos efetivamente presentes nessa linha. |
+| `posicao` | Ordem de leitura iniciada em zero; usada como ordem padrão da lista ordenada. |
 
 A linha original e os campos separados têm funções diferentes. Os campos permitem comparar valores; a linha original permite exportar os mesmos bytes, incluindo aspas, espaços, vírgulas decimais e acentos na codificação de entrada.
 
 | Função | Funcionamento |
 | --- | --- |
-| `registro_criar` | Confere os campos e aloca o registro. Em caso de sucesso, assume a linha e o vetor recebidos; em caso de falha, eles continuam com o chamador. |
-| `registro_campo` | Acessa uma coluna sem expor a estrutura. Se o registro existe, mas o campo final foi omitido, devolve `""`. |
-| `registro_original` | Devolve a linha destinada à exportação. |
-| `registro_posicao` | Informa a posição original na base. |
-| `registro_numero` | Obtém um campo e solicita sua conversão a `texto_numero`. |
-| `registro_apagar` | Libera campos, vetor, linha original e registro. |
+| `item_criar` | Confere se a linha, o vetor e seus campos são válidos e aloca o item. Em caso de sucesso, assume a linha e o vetor recebidos; em caso de falha, eles continuam com o chamador. |
+| `item_campo` | Acessa uma coluna sem expor a estrutura. Se o item existe, mas o campo final foi omitido, devolve `""`. |
+| `item_original` | Devolve a linha destinada à exportação. |
+| `item_posicao` | Informa a posição original na base. |
+| `item_numero` | Obtém um campo e solicita sua conversão a `texto_numero`. |
+| `item_apagar` | Libera campos, vetor, linha original e item, zerando o ponteiro do chamador. Aceita referências nulas. |
 
 Os textos retornados pelos acessores são emprestados. Quem os recebe não deve liberá-los nem modificá-los. `campos_apagar` centraliza a liberação das strings e do vetor, sendo usado também nos caminhos de erro do leitor.
 
-### 5.3. Operações sobre valores
+`item_criar` recebe os dados já alocados pelo leitor e guarda seus ponteiros. Ele não aloca outra cópia da linha nem depende do domínio NASA ou DATATRAN. Se a criação falhar, o leitor continua responsável por liberar a linha e os campos. No sucesso, o ITEM assume esse conteúdo.
+
+Por exemplo, uma linha simplificada do DATATRAN pode conter `742942;MG;146,1`. O campo consultável de quilômetro é preparado como `146.1`, enquanto `item_original` continua devolvendo a linha com `146,1`. `item_numero` converte o valor consultável em `double` somente quando necessário. Em caso de falha, retorna `false` sem substituir o número informado pelo chamador.
+
+A base guarda os itens que recebeu com sucesso. A busca coloca os mesmos ponteiros no resultado. A destruição do resultado usa `false` para liberar somente nós ou vetor; a destruição da base usa `true` para chamar `item_apagar` em cada item. Retirar um item de uma coleção devolve o ponteiro vivo, cabendo ao chamador inseri-lo em outro lugar ou destruí-lo.
+
+### 5.3. Operações sobre valores em `dados/item.c`
 
 `texto_numero` usa `strtod`, confere se houve conversão, rejeita valores não finitos e permite somente espaços depois do número. Assim, `1.5x`, vazio, `NaN` e infinito não são aceitos como números válidos. A consulta deve escrever números com ponto decimal.
 
@@ -183,7 +199,7 @@ A validação usa nomes, sem fixar a posição dessas colunas no código. As dem
 
 Para NASA, os valores seguem diretamente para a criação do registro. Para DATATRAN, `datatran_tratar` adapta os campos consultáveis antes dessa criação.
 
-Somente depois de criar `REGISTRO` a função incrementa `lidos`. A posição anterior desse contador é guardada no registro. Se alguma etapa falhar, libera a linha e todos os campos que ainda não passaram a pertencer a um registro.
+Somente depois de `item_criar` devolver um `ITEM *` válido a função incrementa `lidos`. A posição anterior desse contador é guardada no registro. Se alguma etapa falhar, libera a linha e todos os campos que ainda não passaram a pertencer a um registro.
 
 O cliente recebe `true` com um registro alocado, `true` com registro nulo no EOF ou `false` com mensagem de falha. `leitor_apagar` fecha o arquivo, destrói a tabela, libera o leitor e zera a referência.
 
@@ -217,7 +233,7 @@ Essa adaptação não altera a linha original. A saída conserva Latin-1, as ví
 
 Cada leitura possui três desdobramentos. Uma falha encerra a carga com erro. EOF encerra normalmente. Um registro válido é imediatamente inserido na base escolhida.
 
-A base assume o registro somente se `colecao_inserir` retornar `true`. Se a inserção falhar, `registro_apagar` libera o item recém-criado. `INPUT_RECORDS` é incrementado somente depois de uma inserção bem-sucedida.
+A base assume o registro somente se `colecao_inserir` retornar `true`. Se a inserção falhar, `item_apagar` libera o item recém-criado. `INPUT_RECORDS` é incrementado somente depois de uma inserção bem-sucedida.
 
 A medição final inclui leitura, criação dos registros e inserção na base. A abertura do arquivo, a leitura do cabeçalho e a interpretação da consulta já ocorreram antes dessa região.
 
@@ -284,7 +300,7 @@ Os pesos são divididos pelo maior peso antes da soma. Essa escala conserva a m�
 
 `consulta_comparar` é usada pela lista ordenada. Sem ORDER, compara as posições originais dos registros. Com ORDER, compara a coluna selecionada ou as notas de similaridade. DESC inverte o sinal do resultado. Um empate permanece zero e é preservado pela inserção estável da lista.
 
-`consulta_grupo` entrega o valor do campo do nível solicitado. `consulta_cruzar` compara os registros pelo campo do eixo solicitado. Cada eixo de CROSS fica crescente, independentemente de ORDER. Esses acessos usam a consulta sem revelar a representação de `REGISTRO` aos TADs.
+`consulta_grupo` entrega o valor do campo do nível solicitado. `consulta_cruzar` compara os registros pelo campo do eixo solicitado. Cada eixo de CROSS fica crescente, independentemente de ORDER. Esses acessos usam a consulta sem revelar a representação de `ITEM` aos TADs.
 
 ## 11. Interface comum em `tads/colecao.c`
 
@@ -305,8 +321,8 @@ A forma de percurso é a mesma para o cliente:
 
 ```c
 colecao_reiniciar(base, 0);
-while ((registro = colecao_proximo(base)) != NULL) {
-  /* Avaliar o registro. */
+while ((item = colecao_proximo(base)) != NULL) {
+  /* Avaliar o item. */
 }
 ```
 
@@ -416,7 +432,7 @@ Uma falha de inserção ou relógio interrompe o processamento com erro. `top-k`
 
 O laço verifica o limite antes de solicitar outro item. A ordem é a do próprio TAD: topo da pilha, início da fila/listas, hierarquia da generalizada ou primeiro eixo da cruzada. A exportação não cria um vetor auxiliar para reordenar os itens.
 
-`gravar_linha` escreve `registro_original`, não os campos adaptados. Se uma linha não possuía terminador e mudou de posição, acrescenta uma quebra compatível para impedir que ela se una à próxima. O cabeçalho, as colunas, a ordem das colunas e o delimitador permanecem os da entrada. Nenhuma coluna de similaridade é acrescentada.
+`gravar_linha` escreve `item_original`, não os campos adaptados. Se uma linha não possuía terminador e mudou de posição, acrescenta uma quebra compatível para impedir que ela se una à próxima. O cabeçalho, as colunas, a ordem das colunas e o delimitador permanecem os da entrada. Nenhuma coluna de similaridade é acrescentada.
 
 As operações de escrita e `fclose` são conferidas. Essa última conferência é necessária porque uma falha pode aparecer somente quando o buffer de saída é descarregado no fechamento.
 
@@ -446,7 +462,7 @@ O uso de `<time.h>` foi autorizado pelo usuário. O `Makefile` define `_POSIX_C_
 | Strings de `argv` | Não são alocadas pelo programa; `OPCOES` apenas as referencia. |
 | Arquivo de entrada e `TABELA` | `LEITOR`, por `leitor_apagar`. |
 | Cabeçalho e nomes de colunas | `TABELA`. |
-| Linha original e campos de um item | `REGISTRO`. |
+| Linha original e campos de um item | `ITEM`. |
 | Registros carregados com sucesso | Coleção da base. |
 | Nós, folhas ou vetor do resultado | Coleção do resultado, sem apagar os registros compartilhados. |
 | Chaves de grupos | Seus nós `GRUPO`, que guardam cópias próprias. |
@@ -489,10 +505,10 @@ Os dois arquivos podem ser usados com qualquer combinação de estruturas, porqu
 
 `testes/teste_colecoes.c` verifica os percursos, ordenação após cada inserção, estabilidade dos empates, retiradas, reutilização após esvaziar, crescimento do vetor, grupos vazios de chave e ambos os eixos da cruzada. Também verifica que destruir um resultado não destrói os registros da base.
 
-`testes/teste_csv.c` confere aspas, delimitadores dentro de campos, campos vazios finais, quebras internas, EOF sem quebra final, números e entradas malformadas.
+`testes/teste_csv.c` confere aspas, delimitadores dentro de campos, campos vazios finais, quebras internas, EOF sem quebra final, números e entradas malformadas. A função `testar_item` também verifica a transferência dos ponteiros no sucesso, a preservação dos argumentos na falha, os acessos públicos, a separação entre campos adaptados e linha original, a conversão numérica e a destruição que zera a referência.
 
 `testes/teste_programa.py` compara as 64 combinações de base e resultado na aplicação NASA com uma referência independente. Também confere argumentos, consultas inválidas, indicadores e uma exportação integral idêntica ao arquivo original.
 
 `testes/teste_datatran.py` repete as 64 combinações para a Parte 2. Confere filtros UTF-8 contra campos Latin-1, números decimais, ORDER e CROSS numéricos, ponto e vírgula citado, leitores incompatíveis e as duas consultas entregues. A exportação integral deve ser idêntica ao DATATRAN original, incluindo codificação e quebras de linha. Os testes não alteram os datasets.
 
-Para revisar o projeto, a ordem sugerida é `main.c`, `opcoes.c`, `registro.c`, `csv.c`, `leitor.c`, `datatran.c`, `carga.c`, `consulta.c`, os TADs, `busca.c` e `exportacao.c`. Essa sequência acompanha a vida de um registro desde a entrada até a liberação.
+Para revisar o projeto, a ordem sugerida é `main.c`, `opcoes.c`, `item.c`, `tabela.c`, `csv.c`, `leitor.c`, `datatran.c`, `carga.c`, `consulta.c`, os TADs, `busca.c` e `exportacao.c`. Essa sequência acompanha a vida de um registro desde a entrada até a liberação.

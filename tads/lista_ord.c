@@ -2,7 +2,7 @@
 #include "../consultas/consulta.h"
 
 typedef struct no {
-  REGISTRO *registro;
+  ITEM *item;
   struct no *proximo;
 } NO;
 
@@ -21,24 +21,24 @@ LISTA_ORD *lista_ord_criar(const struct consulta *consulta) {
   return estrutura;
 }
 
-bool lista_ord_inserir(LISTA_ORD *estrutura, REGISTRO *registro) {
+bool lista_ord_inserir(LISTA_ORD *estrutura, ITEM *item) {
   NO *novo;
   NO *anterior = NULL;
   NO *atual;
 
-  if (estrutura == NULL || registro == NULL) {
+  if (estrutura == NULL || item == NULL) {
     return false;
   }
   novo = malloc(sizeof(NO));
   if (novo == NULL) {
     return false;
   }
-  novo->registro = registro;
+  novo->item = item;
   novo->proximo = NULL;
   /* A lista ja fica ordenada nesta insercao; empates entram depois. */
   atual = estrutura->inicio;
   while (atual != NULL &&
-         consulta_comparar(estrutura->consulta, atual->registro, registro) <= 0) {
+         consulta_comparar(estrutura->consulta, atual->item, item) <= 0) {
     anterior = atual;
     atual = atual->proximo;
   }
@@ -52,9 +52,9 @@ bool lista_ord_inserir(LISTA_ORD *estrutura, REGISTRO *registro) {
   return true;
 }
 
-REGISTRO *lista_ord_retirar(LISTA_ORD *estrutura) {
+ITEM *lista_ord_retirar(LISTA_ORD *estrutura) {
   NO *removido;
-  REGISTRO *registro;
+  ITEM *item;
 
   if (estrutura == NULL) {
     return NULL;
@@ -63,11 +63,11 @@ REGISTRO *lista_ord_retirar(LISTA_ORD *estrutura) {
   if (removido == NULL) {
     return NULL;
   }
-  registro = removido->registro;
+  item = removido->item;
   estrutura->inicio = removido->proximo;
   free(removido);
   lista_ord_reiniciar(estrutura);
-  return registro;
+  return item;
 }
 
 void lista_ord_reiniciar(LISTA_ORD *estrutura) {
@@ -76,23 +76,23 @@ void lista_ord_reiniciar(LISTA_ORD *estrutura) {
   }
 }
 
-REGISTRO *lista_ord_proximo(LISTA_ORD *estrutura) {
-  REGISTRO *registro = NULL;
+ITEM *lista_ord_proximo(LISTA_ORD *estrutura) {
+  ITEM *item = NULL;
 
   if (estrutura != NULL && estrutura->atual != NULL) {
-    registro = estrutura->atual->registro;
+    item = estrutura->atual->item;
     estrutura->atual = estrutura->atual->proximo;
   }
-  return registro;
+  return item;
 }
 
-void lista_ord_apagar(LISTA_ORD **estrutura, bool liberar_registros) {
-  REGISTRO *registro;
+void lista_ord_apagar(LISTA_ORD **estrutura, bool liberar_itens) {
+  ITEM *item;
 
   if (estrutura != NULL && *estrutura != NULL) {
-    while ((registro = lista_ord_retirar(*estrutura)) != NULL) {
-      if (liberar_registros) {
-        registro_apagar(&registro);
+    while ((item = lista_ord_retirar(*estrutura)) != NULL) {
+      if (liberar_itens) {
+        item_apagar(&item);
       }
     }
     free(*estrutura);

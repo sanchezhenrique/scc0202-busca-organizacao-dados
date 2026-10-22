@@ -30,7 +30,7 @@ static bool executar(const OPCOES *opcoes, METRICAS *metricas, char *erro, size_
       }
     }
   }
-  /* O resultado empresta os registros: somente a base pode libera-los. */
+  /* O resultado empresta os itens: somente a base pode libera-los. */
   colecao_apagar(&resultado, false);
   colecao_apagar(&base, true);
   consulta_apagar(&consulta);

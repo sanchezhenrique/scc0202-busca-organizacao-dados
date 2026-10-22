@@ -4,7 +4,7 @@
 #include <string.h>
 
 typedef struct folha {
-  REGISTRO *registro;
+  ITEM *item;
   struct folha *proxima;
 } FOLHA;
 
@@ -69,17 +69,17 @@ LISTA_GEN *lista_gen_criar(const struct consulta *consulta) {
   return lista;
 }
 
-bool lista_gen_inserir(LISTA_GEN *lista, REGISTRO *registro) {
+bool lista_gen_inserir(LISTA_GEN *lista, ITEM *item) {
   const char *chave;
   GRUPO *grupo;
   GRUPO *subgrupo = NULL;
   FOLHA *folha;
   bool novo;
 
-  if (lista == NULL || registro == NULL) {
+  if (lista == NULL || item == NULL) {
     return false;
   }
-  chave = consulta_grupo(lista->consulta, registro, 0);
+  chave = consulta_grupo(lista->consulta, item, 0);
   grupo = encontrar_grupo(lista->grupos, chave);
   novo = grupo == NULL;
   if (novo) {
@@ -87,7 +87,7 @@ bool lista_gen_inserir(LISTA_GEN *lista, REGISTRO *registro) {
   }
   folha = malloc(sizeof(FOLHA));
   if (grupo != NULL && folha != NULL) {
-    chave = consulta_grupo(lista->consulta, registro, 1);
+    chave = consulta_grupo(lista->consulta, item, 1);
     subgrupo = encontrar_grupo(grupo->subgrupos, chave);
     if (subgrupo == NULL) {
       subgrupo = criar_grupo(chave);
@@ -105,7 +105,7 @@ bool lista_gen_inserir(LISTA_GEN *lista, REGISTRO *registro) {
     return false;
   }
   /* A hierarquia so recebe o novo grupo depois de concluir as alocacoes. */
-  folha->registro = registro;
+  folha->item = item;
   folha->proxima = NULL;
   if (subgrupo->fim == NULL) {
     subgrupo->inicio = folha;
@@ -120,11 +120,11 @@ bool lista_gen_inserir(LISTA_GEN *lista, REGISTRO *registro) {
   return true;
 }
 
-REGISTRO *lista_gen_retirar(LISTA_GEN *lista) {
+ITEM *lista_gen_retirar(LISTA_GEN *lista) {
   GRUPO *grupo;
   GRUPO *subgrupo;
   FOLHA *folha;
-  REGISTRO *registro;
+  ITEM *item;
 
   if (lista == NULL || lista->grupos == NULL) {
     return NULL;
@@ -132,7 +132,7 @@ REGISTRO *lista_gen_retirar(LISTA_GEN *lista) {
   grupo = lista->grupos;
   subgrupo = grupo->subgrupos;
   folha = subgrupo->inicio;
-  registro = folha->registro;
+  item = folha->item;
   subgrupo->inicio = folha->proxima;
   free(folha);
   if (subgrupo->inicio == NULL) {
@@ -146,7 +146,7 @@ REGISTRO *lista_gen_retirar(LISTA_GEN *lista) {
     }
   }
   lista_gen_reiniciar(lista);
-  return registro;
+  return item;
 }
 
 void lista_gen_reiniciar(LISTA_GEN *lista) {
@@ -157,13 +157,13 @@ void lista_gen_reiniciar(LISTA_GEN *lista) {
   }
 }
 
-REGISTRO *lista_gen_proximo(LISTA_GEN *lista) {
-  REGISTRO *registro;
+ITEM *lista_gen_proximo(LISTA_GEN *lista) {
+  ITEM *item;
 
   if (lista == NULL || lista->atual == NULL) {
     return NULL;
   }
-  registro = lista->atual->registro;
+  item = lista->atual->item;
   lista->atual = lista->atual->proxima;
   if (lista->atual == NULL) {
     lista->subgrupo_atual = lista->subgrupo_atual->proximo;
@@ -177,16 +177,16 @@ REGISTRO *lista_gen_proximo(LISTA_GEN *lista) {
       lista->atual = lista->subgrupo_atual->inicio;
     }
   }
-  return registro;
+  return item;
 }
 
-void lista_gen_apagar(LISTA_GEN **lista, bool liberar_registros) {
-  REGISTRO *registro;
+void lista_gen_apagar(LISTA_GEN **lista, bool liberar_itens) {
+  ITEM *item;
 
   if (lista != NULL && *lista != NULL) {
-    while ((registro = lista_gen_retirar(*lista)) != NULL) {
-      if (liberar_registros) {
-        registro_apagar(&registro);
+    while ((item = lista_gen_retirar(*lista)) != NULL) {
+      if (liberar_itens) {
+        item_apagar(&item);
       }
     }
     free(*lista);

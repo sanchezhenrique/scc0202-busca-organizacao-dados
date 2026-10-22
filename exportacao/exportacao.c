@@ -15,7 +15,7 @@ bool exportacao_gravar(const char *caminho, const TABELA *tabela,
                        COLECAO *resultado, size_t top_k,
                        METRICAS *metricas, char *erro, size_t capacidade) {
   FILE *arquivo;
-  REGISTRO *registro;
+  ITEM *item;
   const char *cabecalho;
   const char *quebra;
   double inicio;
@@ -33,8 +33,8 @@ bool exportacao_gravar(const char *caminho, const TABELA *tabela,
   if (sucesso) {
     sucesso = gravar_linha(arquivo, cabecalho, quebra) && colecao_reiniciar(resultado, 0);
     while (sucesso && (top_k == 0 || metricas->registros_saida < top_k) &&
-           (registro = colecao_proximo(resultado)) != NULL) {
-      sucesso = gravar_linha(arquivo, registro_original(registro), quebra);
+           (item = colecao_proximo(resultado)) != NULL) {
+      sucesso = gravar_linha(arquivo, item_original(item), quebra);
       if (sucesso) {
         metricas->registros_saida++;
       }

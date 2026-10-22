@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-/* O leitor possui o arquivo e sua tabela, mas nao os registros ja entregues. */
+/* O leitor possui o arquivo e sua tabela, mas nao os itens ja entregues. */
 struct leitor {
   FILE *arquivo;
   TABELA *tabela;
@@ -96,19 +96,19 @@ const TABELA *leitor_tabela(const LEITOR *leitor) {
   return leitor != NULL ? leitor->tabela : NULL;
 }
 
-bool leitor_proximo(LEITOR *leitor, REGISTRO **registro,
+bool leitor_proximo(LEITOR *leitor, ITEM **item,
                      char *erro, size_t capacidade) {
   char *linha = NULL;
   char **campos = NULL;
   size_t quantidade = 0;
   bool valido;
 
-  if (leitor == NULL || registro == NULL) {
-    leitor_erro(erro, capacidade, "Leitor ou referencia de registro nula.");
+  if (leitor == NULL || item == NULL) {
+    leitor_erro(erro, capacidade, "Leitor ou referencia de item nula.");
     return false;
   }
-  *registro = NULL;
-  /* Linhas em branco nao contam como registros e sao descartadas antes do parse. */
+  *item = NULL;
+  /* Linhas em branco nao contam como itens e sao descartadas antes do parse. */
   do {
     free(linha);
     linha = NULL;
@@ -130,10 +130,10 @@ bool leitor_proximo(LEITOR *leitor, REGISTRO **registro,
     valido = datatran_tratar(campos, quantidade, leitor->tabela);
   }
   if (valido && leitor->lidos != (size_t)-1) {
-    /* registro_criar assume linha e campos apenas se conseguir criar o TAD. */
-    *registro = registro_criar(linha, campos, quantidade, leitor->lidos);
+    /* item_criar assume linha e campos apenas se conseguir criar o TAD. */
+    *item = item_criar(linha, campos, quantidade, leitor->lidos);
   }
-  if (*registro == NULL) {
+  if (*item == NULL) {
     /* Se a criacao falhou, as alocacoes ainda pertencem ao leitor. */
     campos_apagar(&campos, quantidade);
     free(linha);

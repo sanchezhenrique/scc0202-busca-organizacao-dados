@@ -90,36 +90,36 @@ COLECAO *colecao_criar(TIPO_COLECAO tipo, const struct consulta *consulta) {
   return colecao;
 }
 
-bool colecao_inserir(COLECAO *colecao, REGISTRO *registro) {
+bool colecao_inserir(COLECAO *colecao, ITEM *item) {
   bool inserido = false;
 
-  if (colecao == NULL || registro == NULL || colecao->tamanho == (size_t)-1) {
+  if (colecao == NULL || item == NULL || colecao->tamanho == (size_t)-1) {
     return false;
   }
   switch (colecao->tipo) {
     case COLECAO_PILHA:
-      inserido = pilha_inserir(colecao->pilha, registro);
+      inserido = pilha_inserir(colecao->pilha, item);
       break;
     case COLECAO_FILA:
-      inserido = fila_inserir(colecao->fila, registro);
+      inserido = fila_inserir(colecao->fila, item);
       break;
     case COLECAO_LISTA_SEQ:
-      inserido = lista_seq_inserir(colecao->lista_seq, registro);
+      inserido = lista_seq_inserir(colecao->lista_seq, item);
       break;
     case COLECAO_LISTA_ENC:
-      inserido = lista_enc_inserir(colecao->lista_enc, registro);
+      inserido = lista_enc_inserir(colecao->lista_enc, item);
       break;
     case COLECAO_LISTA_CABECA:
-      inserido = lista_cabeca_inserir(colecao->lista_cabeca, registro);
+      inserido = lista_cabeca_inserir(colecao->lista_cabeca, item);
       break;
     case COLECAO_LISTA_ORD:
-      inserido = lista_ord_inserir(colecao->lista_ord, registro);
+      inserido = lista_ord_inserir(colecao->lista_ord, item);
       break;
     case COLECAO_LISTA_GEN:
-      inserido = lista_gen_inserir(colecao->lista_gen, registro);
+      inserido = lista_gen_inserir(colecao->lista_gen, item);
       break;
     case COLECAO_LISTA_CRUZ:
-      inserido = lista_cruz_inserir(colecao->lista_cruz, registro);
+      inserido = lista_cruz_inserir(colecao->lista_cruz, item);
       break;
   }
   if (inserido) {
@@ -128,42 +128,42 @@ bool colecao_inserir(COLECAO *colecao, REGISTRO *registro) {
   return inserido;
 }
 
-REGISTRO *colecao_retirar(COLECAO *colecao) {
-  REGISTRO *registro = NULL;
+ITEM *colecao_retirar(COLECAO *colecao) {
+  ITEM *item = NULL;
 
   if (colecao == NULL || colecao->tamanho == 0) {
     return NULL;
   }
   switch (colecao->tipo) {
     case COLECAO_PILHA:
-      registro = pilha_retirar(colecao->pilha);
+      item = pilha_retirar(colecao->pilha);
       break;
     case COLECAO_FILA:
-      registro = fila_retirar(colecao->fila);
+      item = fila_retirar(colecao->fila);
       break;
     case COLECAO_LISTA_SEQ:
-      registro = lista_seq_retirar(colecao->lista_seq);
+      item = lista_seq_retirar(colecao->lista_seq);
       break;
     case COLECAO_LISTA_ENC:
-      registro = lista_enc_retirar(colecao->lista_enc);
+      item = lista_enc_retirar(colecao->lista_enc);
       break;
     case COLECAO_LISTA_CABECA:
-      registro = lista_cabeca_retirar(colecao->lista_cabeca);
+      item = lista_cabeca_retirar(colecao->lista_cabeca);
       break;
     case COLECAO_LISTA_ORD:
-      registro = lista_ord_retirar(colecao->lista_ord);
+      item = lista_ord_retirar(colecao->lista_ord);
       break;
     case COLECAO_LISTA_GEN:
-      registro = lista_gen_retirar(colecao->lista_gen);
+      item = lista_gen_retirar(colecao->lista_gen);
       break;
     case COLECAO_LISTA_CRUZ:
-      registro = lista_cruz_retirar(colecao->lista_cruz);
+      item = lista_cruz_retirar(colecao->lista_cruz);
       break;
   }
-  if (registro != NULL) {
+  if (item != NULL) {
     colecao->tamanho--;
   }
-  return registro;
+  return item;
 }
 
 size_t colecao_tamanho(const COLECAO *colecao) {
@@ -204,7 +204,7 @@ bool colecao_reiniciar(COLECAO *colecao, unsigned int eixo) {
   return true;
 }
 
-REGISTRO *colecao_proximo(COLECAO *colecao) {
+ITEM *colecao_proximo(COLECAO *colecao) {
   if (colecao == NULL) {
     return NULL;
   }
@@ -229,34 +229,34 @@ REGISTRO *colecao_proximo(COLECAO *colecao) {
   return NULL;
 }
 
-void colecao_apagar(COLECAO **colecao, bool liberar_registros) {
+void colecao_apagar(COLECAO **colecao, bool liberar_itens) {
   if (colecao == NULL || *colecao == NULL) {
     return;
   }
   switch ((*colecao)->tipo) {
     case COLECAO_PILHA:
-      pilha_apagar(&(*colecao)->pilha, liberar_registros);
+      pilha_apagar(&(*colecao)->pilha, liberar_itens);
       break;
     case COLECAO_FILA:
-      fila_apagar(&(*colecao)->fila, liberar_registros);
+      fila_apagar(&(*colecao)->fila, liberar_itens);
       break;
     case COLECAO_LISTA_SEQ:
-      lista_seq_apagar(&(*colecao)->lista_seq, liberar_registros);
+      lista_seq_apagar(&(*colecao)->lista_seq, liberar_itens);
       break;
     case COLECAO_LISTA_ENC:
-      lista_enc_apagar(&(*colecao)->lista_enc, liberar_registros);
+      lista_enc_apagar(&(*colecao)->lista_enc, liberar_itens);
       break;
     case COLECAO_LISTA_CABECA:
-      lista_cabeca_apagar(&(*colecao)->lista_cabeca, liberar_registros);
+      lista_cabeca_apagar(&(*colecao)->lista_cabeca, liberar_itens);
       break;
     case COLECAO_LISTA_ORD:
-      lista_ord_apagar(&(*colecao)->lista_ord, liberar_registros);
+      lista_ord_apagar(&(*colecao)->lista_ord, liberar_itens);
       break;
     case COLECAO_LISTA_GEN:
-      lista_gen_apagar(&(*colecao)->lista_gen, liberar_registros);
+      lista_gen_apagar(&(*colecao)->lista_gen, liberar_itens);
       break;
     case COLECAO_LISTA_CRUZ:
-      lista_cruz_apagar(&(*colecao)->lista_cruz, liberar_registros);
+      lista_cruz_apagar(&(*colecao)->lista_cruz, liberar_itens);
       break;
   }
   free(*colecao);
